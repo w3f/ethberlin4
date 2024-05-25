@@ -130,9 +130,9 @@ async fn solidity_verifier() -> Result<()> {
         .await?;
 
     // // check the proof
-    // let verified = contract.check_proof(proof, vk, pi).await?;
+    let verified = contract.check_proof(proof, vk, pi.as_slice()).await?;
 
-    // assert!(verified);
+    assert!(verified);
 
     Ok(())
 }
