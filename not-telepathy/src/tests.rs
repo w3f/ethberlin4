@@ -3,6 +3,18 @@ use anyhow::Result;
 use ark_bn254::{Bn254, G1Affine, G2Affine};
 use ark_groth16::Groth16;
 use ark_std::rand::thread_rng;
+use snowball::apk_circuits::{ApkCircuit, keys_to_limbs};
+use ark_relations::r1cs::ConstraintSystem;
+use ark_r1cs_std::boolean::Boolean;
+use ark_r1cs_std::R1CSVar;
+use ark_bls12_381::Bls12_381;
+use ark_std::UniformRand;
+use ark_r1cs_std::fields::nonnative::NonNativeFieldVar;
+use ark_groth16::PreparedVerifyingKey;
+use ark_r1cs_std::alloc::AllocVar;
+use rand::rngs::OsRng;
+use rand::Rng;
+use std::marker::PhantomData;
 
 use ethers::{
     contract::ContractError,
@@ -74,10 +86,42 @@ impl<M: Middleware> Groth16Verifier<M> {
     }
 }
 
+
+
 #[tokio::test]
 async fn solidity_verifier() -> Result<()> {
-    let mut rng = thread_rng();
-    // let proof = Groth16::<Bn254>::prove(&params, circom, &mut rng)?;
+        let rng = &mut OsRng;
+
+        let n = 3;
+        let keys: Vec<ark_bls12_381::G1Affine> =
+            (0..n).map(|_| ark_bls12_381::G1Affine::rand(rng)).collect();
+        let bits: Vec<bool> = (0..n).map(|_| rng.gen_bool(0.9)).collect();
+        let seed = ark_bls12_381::G1Affine::rand(rng); // TODO
+
+
+        let cs = ConstraintSystem::<ark_bls12_381::Fr>::new_ref();
+        let bit_vars = Vec::<Boolean<ark_bls12_381::Fr>>::new_constant(cs, bits.clone()).unwrap();
+        let packed_bits = Boolean::le_bits_to_fp_var(&bit_vars)
+            .unwrap()
+            .value()
+            .unwrap();
+
+        let circuit = ApkCircuit {
+            keys: keys.clone(),
+            seed,
+            packed_bits,
+            _f: PhantomData::<NonNativeFieldVar<ark_bls12_381::Fq, ark_bls12_381::Fr>>,
+        };
+
+
+        //TODO: circuit can be empty
+        let (pk, vk) = Groth16::<Bls12_381>::circuit_specific_setup(circuit.clone(), rng).unwrap();
+        let proof = Groth16::<Bls12_381>::prove(&pk, circuit.clone(), rng).unwrap();
+
+        let pvk: PreparedVerifyingKey<Bls12_381> = vk.into();
+        let mut pi = keys_to_limbs(&keys);
+        pi.push(packed_bits);
+        let pi = Groth16::<Bls12_381>::prepare_inputs(&pvk, &pi).unwrap();
 
     // launch the network & compile the verifier
     let anvil = Anvil::new().spawn();
