@@ -30,6 +30,7 @@ anyhow = "1.0.86"
 ark-bls12-381 = { version = "0.4.0", features = [
     "curve",
 ], default-features = false }
+ark-ec = { version = "0.4.0", default-features = false }
 ark-relations = { version = "0.4.0", default-features = false }
 ark-r1cs-std = { version = "0.4.0", default-features = false }
 ark-snark = { version = "0.4.0", default-features = false }

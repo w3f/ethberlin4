@@ -1,6 +1,8 @@
 use crate::ethereum;
 use anyhow::Result;
 use ark_bn254::Bn254;
+use ark_ec::{AffineRepr, CurveGroup};
+use ark_ff::MontBackend;
 use ark_groth16::Groth16;
 use ark_r1cs_std::alloc::AllocVar;
 use ark_r1cs_std::boolean::Boolean;
@@ -101,11 +103,26 @@ async fn solidity_verifier() -> Result<()> {
         .unwrap()
         .value()
         .unwrap();
+    let apk = keys
+        .iter()
+        .zip(bits.iter())
+        .fold(
+            seed.into_group(),
+            |acc, (key, bit)| {
+                if *bit {
+                    acc + key
+                } else {
+                    acc
+                }
+            },
+        );
+    let apk = apk.into_affine();
 
     let circuit = ApkCircuit::<_, _, NonNativeFieldVar<ark_bls12_381::Fq, ark_bn254::Fr>>::new(
         keys.clone(),
         seed,
         packed_bits,
+        apk,
     );
 
     // TODO: circuit can be empty
@@ -114,6 +131,8 @@ async fn solidity_verifier() -> Result<()> {
 
     let mut pi = keys_to_limbs(&keys);
     pi.push(packed_bits);
+    let apk_bits: Vec<ark_ff::Fp<MontBackend<ark_bn254::FrConfig, 4>, 4>> = keys_to_limbs(&[apk]);
+    pi.extend(apk_bits);
 
     // launch a local network
     let anvil = Anvil::new().spawn();
