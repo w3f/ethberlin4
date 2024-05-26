@@ -5,6 +5,6 @@ Proof of concept for ethberlin. Verifies an APK proof from a foreign curve (Ethe
 To run, call
 
 ``` sh
-cd count-xeno
+cd count-xeno-the-4th
 cargo test solidity_verifier
 ```
