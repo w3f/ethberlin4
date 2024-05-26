@@ -1,5 +1,7 @@
 # Count Xeno the 4th
 
+![](https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Carl_Gustaf_Mannerheim.jpg/1920px-Carl_Gustaf_Mannerheim.jpg)
+
 Proof of concept for ethberlin. Verifies an APK proof from a foreign curve (Ethereum EVM only has BN254 precompile) in solidity.
 
 ## Motivation
