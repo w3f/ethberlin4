@@ -1,4 +1,6 @@
-# ethberlin4
+# Count Xeno the 4th
+
+Proof of concept for ethberlin. Verifies an APK proof from a foreign curve (Ethereum EVM only has BN254 precompile) in solidity.
 
 ## Motivation
 
@@ -28,4 +30,12 @@ To run it, first navigate the rust crate folder and then:
 
 ```bash
 cargo test
+
+
+To run, call
+
+``` sh
+cd count-xeno-the-4th
+cargo test solidity_verifier
+>>>>>>> 1d107a8c3c91075c20fedd9b4dc6f5ce1e173dee
 ```
